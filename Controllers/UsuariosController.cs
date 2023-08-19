@@ -5,20 +5,29 @@ using Microsoft.EntityFrameworkCore;
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
-
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace APIREST.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class UsuariosController : ControllerBase
+
+
     {
         private readonly UsuariosContext _dbContext;
+        private readonly string? secretkey;
 
-        public UsuariosController(UsuariosContext dbContext)
+        public UsuariosController(UsuariosContext dbContext, IConfiguration config)
         {
             _dbContext = dbContext;
+            secretkey = config.GetSection("settings").GetSection("secretkey").ToString();
         }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
@@ -29,6 +38,8 @@ namespace APIREST.Controllers
             }
             return await _dbContext.Usuarios.ToListAsync();
         }
+
+    
         [HttpGet("{nombre}")]
         public async Task<ActionResult<List<Usuarios>>> GetUsuarios([FromQuery] string nombre)
         {
@@ -49,9 +60,9 @@ namespace APIREST.Controllers
 
 
 
-
-
-        [HttpPost("Registro")]
+ 
+        [HttpPost]
+        [Route("Registro")]
         public async Task<ActionResult<Usuarios>> RegistroUsuarios(Usuarios usuario)
         {
             bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre || u.Email == usuario.Email);
@@ -68,17 +79,37 @@ namespace APIREST.Controllers
 
         }
 
-        [HttpPost("Login")]
+        [HttpPost]
+        [Route("Login")]
         public ActionResult<Usuarios> LoginUsuarios(Usuarios usuario)
         {
-            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre || u.Email == usuario.Email);
+            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre && u.Email == usuario.Email);
 
             if (!usuarioRegistrado)
             {
-                return BadRequest(new { Message = "El usuario no está registrado" });
+                return StatusCode(StatusCodes.Status404NotFound, new { Message = "Usuario debe registrarse" });
             }
 
-            return Ok(new { Message = "El usuario está registrado" });
+            var KeyBytes = Encoding.ASCII.GetBytes(secretkey);
+            var claims = new ClaimsIdentity();
+
+            claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, usuario.Email));
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = claims,
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(KeyBytes), SecurityAlgorithms.HmacSha256Signature),
+                
+            };
+
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenConfig = tokenHandler.CreateToken(tokenDescriptor);
+
+            string tokencreado = tokenHandler.WriteToken(tokenConfig);
+
+            return StatusCode(StatusCodes.Status200OK,new { Message = tokencreado });
 
 
         }

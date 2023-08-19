@@ -7,15 +7,17 @@ using APIREST.Models;
 using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace APIREST.Controllers
-{
+{   
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class NotificacionesController : ControllerBase
     {
 
-        [HttpPost("send")]
+        [HttpPost]
         public async Task<IActionResult> Send([FromBody] Notificaciones notificaciones)
         {
             if (FirebaseApp.DefaultInstance == null)
