@@ -21,7 +21,6 @@ namespace APIREST.Controllers
         }
 
         [HttpGet]
-
         public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
         {
             if (_dbContext.Usuarios == null)
@@ -49,23 +48,43 @@ namespace APIREST.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<ActionResult<Usuarios>> PostUsuarios(Usuarios usuario)
+
+
+
+        [HttpPost("Registro")]
+        public async Task<ActionResult<Usuarios>> RegistroUsuarios(Usuarios usuario)
         {
+            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre || u.Email == usuario.Email);
+
+            if (usuarioRegistrado)
+            {
+                return BadRequest(new { Message = "El usuario ya está registrado" });
+            }
+
             _dbContext.Usuarios.Add(usuario);
             await _dbContext.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUsuarios), new { id = usuario.Id }, usuario);
 
         }
-    
-    
-    
-    
-    
-    
-    
-    
+
+        [HttpPost("Login")]
+        public ActionResult<Usuarios> LoginUsuarios(Usuarios usuario)
+        {
+            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre || u.Email == usuario.Email);
+
+            if (!usuarioRegistrado)
+            {
+                return BadRequest(new { Message = "El usuario no está registrado" });
+            }
+
+            return Ok(new { Message = "El usuario está registrado" });
+
+
+        }
+
+
+
     }
 
 
