@@ -109,16 +109,7 @@ namespace APIREST.Controllers
   
 
         //FUNCIONES RELACIONADAS A LA GENERACION Y FIRMA DEL TOKEN
-        private Usuarios Authenticacion(Usuarios users)
-        {
-            Usuarios _user = null;
-            if (users.Nombre == "Luciano Pereyra" && users.Email == "Pereyraluciano771@gmail.com")
-            {
-                _user = new Usuarios { Nombre = "Luciano Pereyra" };
-            }
-
-            return _user;
-        }
+        
 
         private string GenerateToken(Usuarios users)
         {
