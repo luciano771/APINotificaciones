@@ -6,14 +6,14 @@ namespace APIREST.Models
     {
         [Key]
         public int Id { get; set; }
-
         public string Nombre { get; set; }
-
+        public string Contraseña { get; set; }
+ 
         public string Email { get; set; }
+    
+        public int? Edad { get; set; }
 
-        public int Edad { get; set; }
-
-        public string? Token { get; set; }
+        public string? TokenNotificacion { get; set; }
 
     }
 }
