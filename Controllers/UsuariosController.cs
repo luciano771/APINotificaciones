@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Azure;
 using static Google.Apis.Requests.BatchRequest;
+using Newtonsoft.Json.Linq;
 
 namespace APIREST.Controllers
 {
@@ -85,7 +86,7 @@ namespace APIREST.Controllers
             _dbContext.Usuarios.Add(usuario);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUsuarios), new { id = usuario.Id }, usuario);
+            return Ok(new { Nombre = usuario.Nombre, Email = usuario.Email, usuario.Edad });
 
         }
 
@@ -93,7 +94,7 @@ namespace APIREST.Controllers
         [Route("Login")]
         public ActionResult<Usuarios> LoginUsuarios(Usuarios usuario)
         {
-            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre && u.Email == usuario.Email);
+            bool usuarioRegistrado = _dbContext.Usuarios.Any(u => u.Nombre == usuario.Nombre && u.Email == usuario.Email && u.Contraseña == usuario.Contraseña);
             ActionResult<Usuarios> response;
             if (!usuarioRegistrado)
             {
@@ -101,7 +102,7 @@ namespace APIREST.Controllers
             }
 
             var token = GenerateToken(usuario);
-            response = Ok(new { Token = token });
+            response = Ok(new { Token = token, Nombre = usuario.Nombre, Email = usuario.Email, usuario.Edad });
             return response;
 
         }
@@ -116,8 +117,18 @@ namespace APIREST.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"], _config["Jwt:Audience"], null,
-            expires: DateTime.Now.AddMinutes(10),
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, users.Nombre),
+                new Claim(ClaimTypes.Email, users.Email)
+                // Agregar más claims según necesites
+            };
+
+            var token = new JwtSecurityToken(
+            null,
+            null,
+            claims,
+            expires: DateTime.Now.AddSeconds(10),
             signingCredentials: credentials
            );
 
