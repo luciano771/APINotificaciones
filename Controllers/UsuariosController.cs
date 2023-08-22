@@ -39,7 +39,7 @@ namespace APIREST.Controllers
          
 
         [HttpGet]
-        [Authorize]
+
         public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
         {
             if (_dbContext.Usuarios == null)
@@ -128,7 +128,7 @@ namespace APIREST.Controllers
             null,
             null,
             claims,
-            expires: DateTime.Now.AddSeconds(10),
+            expires: DateTime.Now.AddMinutes(5),
             signingCredentials: credentials
            );
 
