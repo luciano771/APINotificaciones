@@ -39,7 +39,7 @@ namespace APIREST.Controllers
          
 
         [HttpGet]
-
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
         {
             if (_dbContext.Usuarios == null)
@@ -49,9 +49,9 @@ namespace APIREST.Controllers
             return await _dbContext.Usuarios.ToListAsync();
         }
 
-    
+
         [HttpGet("{nombre}")]
-         
+
         public async Task<ActionResult<List<Usuarios>>> GetUsuarios([FromQuery] string nombre)
         {
             if (_dbContext.Usuarios == null)
@@ -71,7 +71,8 @@ namespace APIREST.Controllers
 
 
 
- 
+
+
         [HttpPost]
         [Route("Registro")]
         public async Task<ActionResult<Usuarios>> RegistroUsuarios(Usuarios usuario)
@@ -98,7 +99,7 @@ namespace APIREST.Controllers
             ActionResult<Usuarios> response;
             if (!usuarioRegistrado)
             {
-                 return response = StatusCode(StatusCodes.Status404NotFound, new { Message = "Usuario debe registrarse" });
+                return response = StatusCode(StatusCodes.Status404NotFound, new { Message = "Usuario debe registrarse" });
             }
 
             var token = GenerateToken(usuario);
@@ -107,10 +108,10 @@ namespace APIREST.Controllers
 
         }
 
-  
+
 
         //FUNCIONES RELACIONADAS A LA GENERACION Y FIRMA DEL TOKEN
-        
+
 
         private string GenerateToken(Usuarios users)
         {
